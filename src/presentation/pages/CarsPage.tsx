@@ -5,9 +5,17 @@ import { useCars } from "../../application/hooks/useCars";
 import { toast } from "react-toastify";
 import { Car } from "../../domain/entities/car";
 
-
 export const CarsPage = () => {
-  const { cars, carsDeleted, loading, error, createCar, deleteCar } = useCars();
+  const { 
+    cars, 
+    carsDeleted, 
+    loading, 
+    error, 
+    createCar, 
+    deleteCar, 
+    restoreCar,
+    deletePermanently 
+  } = useCars();
 
   const handleCreate = async (carData: Omit<Car, "id">) => {
     try {
@@ -18,6 +26,7 @@ export const CarsPage = () => {
     }
   };
 
+
   const handleDelete = async (id: number) => {
     try {
       await deleteCar(id);
@@ -26,6 +35,27 @@ export const CarsPage = () => {
       toast.error("Error al eliminar el auto");
     }
   };
+
+
+  const handleRestore = async (id: number) => {
+    try {
+      await restoreCar(id);
+
+      toast.success("Auto restaurado correctamente");
+    } catch {
+      toast.error("Error al restaurar el auto");
+    }
+  }
+
+  const handleDeletePermanently = async (id: number) => {
+    try {
+      await deletePermanently(id);
+      toast.success("Auto eliminado permanentemente correctamente");
+    } catch {
+      toast.error("Error al eliminar el auto permanentemente");
+    }
+  }
+
 
   if (loading) {
     return <div className="p-6">Cargando autos...</div>;
@@ -39,10 +69,14 @@ export const CarsPage = () => {
     );
   }
 
+  
   return (
-    <CarList cars={cars} 
-    carsDeleted={carsDeleted} 
-    onDelete={handleDelete}>
+    <CarList cars={cars}
+      carsDeleted={carsDeleted}
+      onDelete={handleDelete}
+      restoreCar={handleRestore}
+      onDeletePermanently={handleDeletePermanently}
+    >
       <CarForm onSubmit={handleCreate} />
     </CarList>
   );

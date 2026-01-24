@@ -6,6 +6,9 @@ import { GetCarsDeletedUseCase } from "../../domain/use-cases/getCarsDelete";
 import { CreateCarUseCase } from "../../domain/use-cases/createCar";
 import { DeleteCarUseCase } from "../../domain/use-cases/deleteCar";
 import { CarRepositoryImpl } from "../../infrastructure/repositories/CarRepositoryImpl";
+import { RestoreCarUseCase } from "../../domain/use-cases/restoreCar";
+import { DeletePermanentlyUseCase } from "../../domain/use-cases/deletePerm";
+
 
 const carRepository = new CarRepositoryImpl();
 
@@ -13,6 +16,8 @@ const getCarsUseCase = new GetCarsUseCase(carRepository);
 const getCarsDeletedUseCase = new GetCarsDeletedUseCase(carRepository);
 const createCarUseCase = new CreateCarUseCase(carRepository);
 const deleteCarUseCase = new DeleteCarUseCase(carRepository);
+const restoreCarUseCase = new RestoreCarUseCase(carRepository);
+const deletePermanentlyUseCase = new DeletePermanentlyUseCase(carRepository);
 
 export const useCars = () => {
   const [cars, setCars] = useState<Car[]>([]);
@@ -66,21 +71,58 @@ export const useCars = () => {
     }
   }, []);
 
+  
   const deleteCar = useCallback(async (id: number) => {
+  
     try {
       await deleteCarUseCase.execute(id);
-      setCars((prev) => prev.filter((car) => car.id !== id));
-    } catch (err) {
+      setCars((prev) =>
+         prev.filter((car) => car.id !== id)
+    );
+    
+  } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Error al eliminar el auto";
       setError(errorMessage);
       throw err;
     }
   }, []);
 
+
+  const restoreCar = useCallback(async (id:number) => {
+
+    try {
+      const restoredCar = await restoreCarUseCase.execute(id);
+      // Have a service restore - backend actually restores the car and deletes it from the deleted cars list
+      setCarsDeleted((prev) =>
+         prev.filter((car) => car.id !== id)
+    );
+
+    return restoredCar;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error al restaurar el auto";
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
+  
+
+  const deletePermanently = useCallback(async (id:number) => {
+    try {
+      await deletePermanentlyUseCase.execute(id);
+      setCarsDeleted((prev) => prev.filter((car) => car.id !== id));
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Error al eliminar el auto permanentemente";
+      setError(errorMessage);
+      throw err;
+    }
+  }, []);
+    
+  
   useEffect(() => {
     fetchCars();
     fetchCarsDeleted();
   }, [fetchCars, fetchCarsDeleted]);
+
 
   return {
     cars,
@@ -89,6 +131,8 @@ export const useCars = () => {
     error,
     createCar,
     deleteCar,
+    restoreCar,
+    deletePermanently,
     refetch: fetchCars,
     refetchCarsDeleted: fetchCarsDeleted,
   };

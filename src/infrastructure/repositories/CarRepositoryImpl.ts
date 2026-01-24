@@ -25,8 +25,16 @@ export class CarRepositoryImpl implements ICarRepository {
     return await carApi.update(id, payload);
   }
 
+  async restore(id:number): Promise<Car>{
+    return await carApi.restore(id);
+  }
+
   async remove(id: number): Promise<void> {
     return await carApi.remove(id);
+  }
+
+  async removePermanently(id:number): Promise<void>{
+    return await carApi.removePermanently(id);
   }
 }
 

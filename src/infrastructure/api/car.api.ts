@@ -4,6 +4,7 @@ import { api } from "./axios.instance";
 import { API_ENDPOINTS } from "../../shared/constants/api.endpoints";
 
 export const carApi = {
+
   getAll: async (): Promise<Car[]> => {
     const { data } = await api.get<Car[]>(API_ENDPOINTS.CARS);
     return data;
@@ -29,7 +30,16 @@ export const carApi = {
     return data;
   },
 
+  restore : async (id: number): Promise<Car> => {
+    const {data} = await api.patch<Car>(`${API_ENDPOINTS.CARS}/${id}/restore`);
+    return data;
+  },
+
   remove: async (id: number): Promise<void> => {
     await api.delete(`${API_ENDPOINTS.CARS}/${id}`);
   },
+
+  removePermanently: async(id:number): Promise<void> => {
+    await api.delete(`${API_ENDPOINTS.CARS}/${id}/hard`);
+  }
 };
