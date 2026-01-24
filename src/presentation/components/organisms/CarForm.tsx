@@ -6,7 +6,7 @@ import {
   CarFormData,
   INITIAL_CAR_FORM_DATA,
   carFormSchema
-} from "../../domain/entities/car";
+} from "../../../domain/entities/car";
 
 interface Props {
   onSubmit: (data: CarFormData) => Promise<void>;

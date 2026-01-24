@@ -1,5 +1,4 @@
 // infrastructure/api/car.api.ts
-// import { Car } from "../../types/cars";
 import { Car } from "../../domain/entities/car";
 import { api } from "./axios.instance";
 import { API_ENDPOINTS } from "../../shared/constants/api.endpoints";
@@ -7,6 +6,11 @@ import { API_ENDPOINTS } from "../../shared/constants/api.endpoints";
 export const carApi = {
   getAll: async (): Promise<Car[]> => {
     const { data } = await api.get<Car[]>(API_ENDPOINTS.CARS);
+    return data;
+  },
+
+  getAllDeleted: async (): Promise<Car[]> => {
+    const { data } = await api.get<Car[]>(`${API_ENDPOINTS.CARS}/deleted`);
     return data;
   },
 

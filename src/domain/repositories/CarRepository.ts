@@ -3,6 +3,7 @@ import { Car } from "../entities/car";
 
 export interface ICarRepository {
   getAll(): Promise<Car[]>;
+  getAllDeleted(): Promise<Car[]>;
   getById(id: number): Promise<Car>;
   create(payload: Omit<Car, "id">): Promise<Car>;
   update(id: number, payload: Partial<Car>): Promise<Car>;

@@ -1,0 +1,1 @@
+export * from "./logo-mazda.png"

@@ -1,12 +1,13 @@
 // presentation/pages/CarsPage.tsx
-import { CarForm } from "../components/CarForm";
-import { CarList } from "../components/CarList";
+import { CarForm } from "../components/organisms/CarForm";
+import { CarList } from "../components/organisms/CarList";
 import { useCars } from "../../application/hooks/useCars";
 import { toast } from "react-toastify";
 import { Car } from "../../domain/entities/car";
 
+
 export const CarsPage = () => {
-  const { cars, loading, error, createCar, deleteCar } = useCars();
+  const { cars, carsDeleted, loading, error, createCar, deleteCar } = useCars();
 
   const handleCreate = async (carData: Omit<Car, "id">) => {
     try {
@@ -39,7 +40,9 @@ export const CarsPage = () => {
   }
 
   return (
-    <CarList cars={cars} onDelete={handleDelete}>
+    <CarList cars={cars} 
+    carsDeleted={carsDeleted} 
+    onDelete={handleDelete}>
       <CarForm onSubmit={handleCreate} />
     </CarList>
   );

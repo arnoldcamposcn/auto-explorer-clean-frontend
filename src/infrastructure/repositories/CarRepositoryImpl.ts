@@ -4,8 +4,13 @@ import { Car } from "../../domain/entities/car";
 import { carApi } from "../api/car.api";
 
 export class CarRepositoryImpl implements ICarRepository {
+
   async getAll(): Promise<Car[]> {
     return await carApi.getAll();
+  }
+
+  async getAllDeleted(): Promise<Car[]> {
+    return await carApi.getAllDeleted();
   }
 
   async getById(id: number): Promise<Car> {
@@ -24,3 +29,5 @@ export class CarRepositoryImpl implements ICarRepository {
     return await carApi.remove(id);
   }
 }
+
+
