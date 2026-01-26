@@ -30,7 +30,11 @@ export const CarForm = ({ onSubmit }: Props) => {
       reset();
     } catch (error) {
       toast.error("Error al crear el auto. Por favor, intenta nuevamente.");
-      console.error(error);
+      // Solo mostrar error en consola en desarrollo
+      if (import.meta.env.DEV) {
+        console.error(error);
+      }
+      // console.log(error);
     }
   };
 

@@ -4,18 +4,22 @@ import { CarList } from "../components/organisms/CarList";
 import { useCars } from "../../application/hooks/useCars";
 import { toast } from "react-toastify";
 import { Car } from "../../domain/entities/car";
+import { useState, useCallback } from "react";
+import { CarFilters } from "../../shared/constants/queryKeys";
 
 export const CarsPage = () => {
+  const [filters, setFilters] = useState<CarFilters>({});
+  
   const { 
     cars, 
     carsDeleted, 
-    loading, 
+    // loading, 
     error, 
     createCar, 
     deleteCar, 
     restoreCar,
     deletePermanently 
-  } = useCars();
+  } = useCars(filters);
 
   const handleCreate = async (carData: Omit<Car, "id">) => {
     try {
@@ -26,7 +30,6 @@ export const CarsPage = () => {
     }
   };
 
-
   const handleDelete = async (id: number) => {
     try {
       await deleteCar(id);
@@ -36,16 +39,14 @@ export const CarsPage = () => {
     }
   };
 
-
   const handleRestore = async (id: number) => {
     try {
       await restoreCar(id);
-
       toast.success("Auto restaurado correctamente");
     } catch {
       toast.error("Error al restaurar el auto");
     }
-  }
+  };
 
   const handleDeletePermanently = async (id: number) => {
     try {
@@ -54,30 +55,39 @@ export const CarsPage = () => {
     } catch {
       toast.error("Error al eliminar el auto permanentemente");
     }
-  }
+  };
 
 
-  if (loading) {
-    return <div className="p-6">Cargando autos...</div>;
-  }
 
-  if (error) {
-    return (
-      <div className="p-6 text-red-500">
-        Error: {error}
-      </div>
-    );
-  }
+  const handleFiltersChange = useCallback((newFilters: CarFilters) => {
+    setFilters(newFilters); // Reemplazar completamente
+  }, []);
 
-  
+
+ // NO desmontar el componente, solo mostrar error si hay
+ if (error) {
   return (
-    <CarList cars={cars}
-      carsDeleted={carsDeleted}
-      onDelete={handleDelete}
-      restoreCar={handleRestore}
-      onDeletePermanently={handleDeletePermanently}
-    >
-      <CarForm onSubmit={handleCreate} />
-    </CarList>
+    <div className="p-6 text-red-500">
+      Error: {error}
+    </div>
   );
+}
+
+
+  return (
+    <>
+ 
+
+      <CarList 
+        cars={cars}
+        carsDeleted={carsDeleted}
+        onDelete={handleDelete}
+        restoreCar={handleRestore}
+        onDeletePermanently={handleDeletePermanently}
+        onFiltersChange={handleFiltersChange}
+      >
+        <CarForm onSubmit={handleCreate} />
+      </CarList>
+    </>
+    );
 };

@@ -2,11 +2,12 @@
 import { ICarRepository } from "../../domain/repositories/CarRepository";
 import { Car } from "../../domain/entities/car";
 import { carApi } from "../api/car.api";
+import { CarFilters } from "../../shared/constants/queryKeys";
 
 export class CarRepositoryImpl implements ICarRepository {
 
-  async getAll(): Promise<Car[]> {
-    return await carApi.getAll();
+  async getAll(filters?: CarFilters): Promise<Car[]> {
+    return await carApi.getAll(filters);
   }
 
   async getAllDeleted(): Promise<Car[]> {

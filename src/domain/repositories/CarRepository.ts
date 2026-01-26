@@ -1,9 +1,9 @@
 // domain/repositories/CarRepository.ts
 import { Car } from "../entities/car";
+import { CarFilters } from "../../shared/constants/queryKeys";
 
 export interface ICarRepository {
-
-  getAll(): Promise<Car[]>;
+  getAll(filters?: CarFilters): Promise<Car[]>;
   getAllDeleted(): Promise<Car[]>;
   getById(id: number): Promise<Car>;
   create(payload: Omit<Car, "id">): Promise<Car>;
