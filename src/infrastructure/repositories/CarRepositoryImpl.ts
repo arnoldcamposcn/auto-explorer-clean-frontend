@@ -1,6 +1,6 @@
 // infrastructure/repositories/CarRepositoryImpl.ts
 import { ICarRepository } from "../../domain/repositories/CarRepository";
-import { Car } from "../../domain/entities/car";
+import { Brands, Car, Colors, Years } from "../../domain/entities/car";
 import { carApi } from "../api/car.api";
 import { CarFilters } from "../../shared/constants/queryKeys";
 
@@ -16,6 +16,18 @@ export class CarRepositoryImpl implements ICarRepository {
 
   async getById(id: number): Promise<Car> {
     return await carApi.getById(id);
+  }
+  
+  async getColors(): Promise<Colors> {
+    return await carApi.getColors();
+  }
+
+  async getBrands(): Promise<Brands> {
+    return await carApi.getBrands();
+  }
+
+  async getYears(): Promise<Years> {
+    return await carApi.getYears();
   }
 
   async create(payload: Omit<Car, "id">): Promise<Car> {

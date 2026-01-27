@@ -1,5 +1,5 @@
 // infrastructure/api/car.api.ts
-import { Car } from "../../domain/entities/car";
+import { Brands, Car, Colors, Years } from "../../domain/entities/car";
 import { api } from "./axios.instance";
 import { API_ENDPOINTS } from "../../shared/constants/api.endpoints";
 import { CarFilters } from "../../shared/constants/queryKeys";
@@ -22,6 +22,21 @@ export const carApi = {
 
   getById: async (id: number): Promise<Car> => {
     const { data } = await api.get<Car>(`${API_ENDPOINTS.CARS}/${id}`);
+    return data;
+  },
+
+  getColors: async (): Promise<Colors> => {
+    const { data } = await api.get<Colors>(`${API_ENDPOINTS.CARS}/colors`);
+    return data;
+  },
+
+  getBrands: async (): Promise<Brands> => {
+    const { data } = await api.get<Brands>(`${API_ENDPOINTS.CARS}/brands`);
+    return data;
+  },
+
+  getYears: async (): Promise<Years> => {
+    const { data } = await api.get<Years>(`${API_ENDPOINTS.CARS}/years`);
     return data;
   },
 

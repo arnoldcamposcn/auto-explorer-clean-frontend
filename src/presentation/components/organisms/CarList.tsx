@@ -1,23 +1,30 @@
 // presentation/components/organisms/CarList.tsx
 import { useDebounce } from "../../../application/hooks/useDebounce";
-import { Car } from "../../../domain/entities/car";
-import { ReactNode, useState, useEffect } from "react";
+import { Brands, Car, Colors, Years } from "../../../domain/entities/car";
+import { ReactNode, useState, useEffect, useMemo } from "react";
 import { CarFilters } from "../../../shared/constants/queryKeys";
+import { FilterSelect, createSelectOptions, createNumberSelectOptions } from "../molecules";
 
 interface Props {
   cars: Car[];
   carsDeleted: Car[];
+  colors: Colors; // Cambiar de Colors[] a Colors (que ya es string[])
+  brands: Brands;
+  years: Years;
   onDelete: (id: number) => void;
   onDeletePermanently: (id: number) => void;
   restoreCar: (id: number) => void;
-  onFiltersChange?: (filters: CarFilters) => void; // Corregir typo
+  onFiltersChange?: (filters: CarFilters) => void;
   children?: ReactNode;
 }
 
 export const CarList = ({
   cars,
   carsDeleted,
+  colors,
+  years,
   onDelete,
+  brands,
   restoreCar,
   onDeletePermanently,
   onFiltersChange,
@@ -25,16 +32,70 @@ export const CarList = ({
 }: Props) => {
   const [showCarsDeleted, setShowCarsDeleted] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<number | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const debouncedSearch = useDebounce(searchTerm, 500);
-  
 
+  // Convertir colores a formato react-select
+  // Memoizar las opciones para evitar recrearlas en cada render
+  const colorOptions = useMemo(
+    () => createSelectOptions(colors, "Todos los colores"),
+    [colors]
+  );
+
+  const brandOptions = useMemo(
+    () => createSelectOptions(brands, "Todas las marcas"),
+    [brands]
+  );
+
+  const yearOptions = useMemo(
+    () => createNumberSelectOptions(years, "Todos los años"),
+    [years]
+  );
+
+  // Combinar ambos filtros (búsqueda y color)
   useEffect(() => {
-    onFiltersChange?.(
-      debouncedSearch.trim()
-      ? { q: debouncedSearch.trim() } : {}
-    );
-  }, [debouncedSearch, onFiltersChange]);
+    if (!showCarsDeleted) {
+      const filters: CarFilters = {};
 
+      if (debouncedSearch.trim()) {
+        filters.q = debouncedSearch.trim();
+      }
+
+      if (selectedColor && selectedColor.trim()) {
+        filters.color = selectedColor.trim();
+      }
+
+      if (selectedBrand && selectedBrand.trim()) {
+        filters.brand = selectedBrand.trim();
+      }
+
+      if (selectedYear && selectedYear !== null) {
+        filters.year = selectedYear;
+      }
+
+      onFiltersChange?.(filters);
+    } else {
+      // Cuando estamos viendo eliminados, limpiar filtros
+      onFiltersChange?.({});
+    }
+  }, [debouncedSearch, selectedColor, selectedBrand, selectedYear, showCarsDeleted, onFiltersChange]);
+
+
+
+  const handleToggleCarsDeleted = () => {
+    const newValue = !showCarsDeleted;
+    setShowCarsDeleted(newValue);
+    
+    // Limpiar filtros cuando cambiamos a eliminados
+    if (newValue) {
+      setSearchTerm("");
+      setSelectedColor(null);
+      setSelectedBrand(null);
+      onFiltersChange?.({});
+    }
+  };
 
 
   const carsToShow = showCarsDeleted ? carsDeleted : cars;
@@ -56,22 +117,50 @@ export const CarList = ({
         )}
 
         <div className="mb-6 flex justify-between items-center gap-4">
-          {/* Input SOLO para autos disponibles */}
+          {/* Input y Select SOLO para autos disponibles */}
           {!showCarsDeleted && (
-            <input
-              type="text"
-              placeholder="Buscar por marca, modelo o color..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              
-              className="flex-1 max-w-md p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <>
+              <input
+                type="text"
+                placeholder="Buscar por marca, modelo o color..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 max-w-md p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+              <div className="w-64">
+                <FilterSelect
+                  options={colorOptions}
+                  value={selectedColor}
+                  onChange={setSelectedColor}
+                  placeholder="Filtrar por color..."
+                />
+              </div>
+
+              <div className="w-64">
+                <FilterSelect
+                  options={brandOptions}
+                  value={selectedBrand}
+                  onChange={setSelectedBrand}
+                  placeholder="Filtrar por marca..."
+                />
+              </div>
+
+              <div className="w-64">
+                <FilterSelect
+                  options={yearOptions}
+                  value={selectedYear ? selectedYear.toString() : null}
+                  onChange={(value) => setSelectedYear(value ? Number(value) : null)}
+                  placeholder="Filtrar por año..."
+                />
+              </div>
+            </>
           )}
 
           <button
             type="button"
             className="flex gap-4 p-4 bg-amber-400 cursor-pointer hover:bg-amber-500 transition-colors rounded"
-            onClick={() => setShowCarsDeleted(!showCarsDeleted)}
+            onClick={handleToggleCarsDeleted}
           >
             {showCarsDeleted ? "Autos Disponibles" : "Autos Eliminados"}
             <span className="text-white font-bold">
@@ -80,9 +169,7 @@ export const CarList = ({
           </button>
         </div>
 
-
         <table className="w-full border-collapse border border-gray-200 rounded-md shadow-sm overflow-hidden">
-          {/* ... resto de la tabla sin cambios ... */}
           <thead className="bg-blue-700 text-white">
             <tr>
               <th className="px-6 py-3 text-center text-xs font-bold uppercase border-r border-blue-600 last:border-r-0">
@@ -107,13 +194,14 @@ export const CarList = ({
             {carsToShow.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-8 text-center text-gray-400 text-sm italic">
-                  {searchTerm ? "No se encontraron resultados" : "No se encontraron registros"}
+                  {searchTerm || selectedColor
+                    ? "No se encontraron resultados"
+                    : "No se encontraron registros"}
                 </td>
               </tr>
             ) : (
               carsToShow.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                  {/* ... celdas de la tabla sin cambios ... */}
                   <td className="px-6 py-4 text-sm text-gray-700 border-r border-gray-100 font-medium text-center">
                     {item.brand}
                   </td>
@@ -131,12 +219,14 @@ export const CarList = ({
                       {showCarsDeleted ? (
                         <>
                           <button
+                            type="button"
                             className="text-red-600 hover:text-red-800 text-xs font-bold underline decoration-1 underline-offset-4"
                             onClick={() => onDeletePermanently(item.id)}
                           >
                             ELIMINAR PERMANENTEMENTE
                           </button>
                           <button
+                            type="button"
                             onClick={() => restoreCar(item.id)}
                             className="text-green-600 hover:text-green-800 text-xs font-bold underline decoration-1 underline-offset-4"
                           >
@@ -145,14 +235,14 @@ export const CarList = ({
                         </>
                       ) : (
                         <>
-
-
                           <button
+                            type="button"
                             className="text-blue-600 hover:text-blue-800 text-xs font-bold underline decoration-1 underline-offset-4"
                           >
                             EDITAR
                           </button>
                           <button
+                            type="button"
                             onClick={() => onDelete(item.id)}
                             className="text-red-600 hover:text-red-800 text-xs font-bold underline decoration-1 underline-offset-4"
                           >

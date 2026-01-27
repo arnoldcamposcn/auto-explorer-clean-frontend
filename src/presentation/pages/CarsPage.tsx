@@ -13,6 +13,9 @@ export const CarsPage = () => {
   const { 
     cars, 
     carsDeleted, 
+    colors,
+    brands,
+    years,
     // loading, 
     error, 
     createCar, 
@@ -76,11 +79,13 @@ export const CarsPage = () => {
 
   return (
     <>
- 
 
       <CarList 
         cars={cars}
-        carsDeleted={carsDeleted}
+        colors={colors}
+        brands={brands}
+        years={years}
+        carsDeleted={carsDeleted} 
         onDelete={handleDelete}
         restoreCar={handleRestore}
         onDeletePermanently={handleDeletePermanently}
