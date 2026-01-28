@@ -27,7 +27,7 @@ const restoreCarUseCase = new RestoreCarUseCase(carRepository);
 const deletePermanentlyUseCase = new DeletePermanentlyUseCase(carRepository);
 
 
-export const useCars = (filters?: CarFilters) => {
+export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
   // export const useCars = (filters?: CarFilters) => {
   const queryClient = useQueryClient();
 
@@ -48,10 +48,9 @@ export const useCars = (filters?: CarFilters) => {
     isLoading: loadingDeleted,
     error: errorDeleted,
   } = useQuery({
-    queryKey: carQueryKeys.deleted(), // Sin filtros
-    queryFn: () => getCarsDeletedUseCase.execute(), // Sin filtros
+    queryKey: carQueryKeys.deleted(deletedFilters), // Sin filtros
+    queryFn: () => getCarsDeletedUseCase.execute(deletedFilters), // Sin filtros
   });
-
 
   const {
     data: colors = [],

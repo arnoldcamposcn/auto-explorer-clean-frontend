@@ -4,7 +4,7 @@ import { CarFilters } from "../../shared/constants/queryKeys";
 
 export interface ICarRepository {
   getAll(filters?: CarFilters): Promise<Car[]>;
-  getAllDeleted(): Promise<Car[]>;
+  getAllDeleted(filters?: CarFilters): Promise<Car[]>;
   getById(id: number): Promise<Car>;
   getColors(): Promise<Colors>;
   getBrands(): Promise<Brands>;

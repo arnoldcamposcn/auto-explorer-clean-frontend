@@ -3,6 +3,9 @@ import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import App from './App'
+import Modal from 'react-modal'
+
+Modal.setAppElement('#root')
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -7,9 +7,12 @@ import {
   INITIAL_CAR_FORM_DATA,
   carFormSchema
 } from "../../../domain/entities/car";
+import { Input } from "../atoms/input";
+import { Button } from "../atoms/Button";
 
 interface Props {
   onSubmit: (data: CarFormData) => Promise<void>;
+
 }
 
 export const CarForm = ({ onSubmit }: Props) => {
@@ -41,11 +44,8 @@ export const CarForm = ({ onSubmit }: Props) => {
   return (
     <form onSubmit={handleSubmit(onSubmitForm)}>
       <div>
-        <input
-          {...register("brand")}
-          placeholder="Marca"
-          className="border-2"
-        />
+        <Input {...register("brand")} placeholder="Marca" />
+
         {errors.brand && (
           <span className="text-red-500 text-xs">
             {errors.brand.message}
@@ -54,11 +54,8 @@ export const CarForm = ({ onSubmit }: Props) => {
       </div>
 
       <div>
-        <input
-          {...register("model")}
-          placeholder="Modelo"
-          className="border-2"
-        />
+        <Input {...register("model")} placeholder="Modelo" />
+
         {errors.model && (
           <span className="text-red-500 text-xs">
             {errors.model.message}
@@ -67,11 +64,8 @@ export const CarForm = ({ onSubmit }: Props) => {
       </div>
 
       <div>
-        <input
-          {...register("color")}
-          placeholder="Color"
-          className="border-2"
-        />
+        <Input {...register("color")} placeholder="Color" />
+
         {errors.color && (
           <span className="text-red-500 text-xs">
             {errors.color.message}
@@ -80,12 +74,9 @@ export const CarForm = ({ onSubmit }: Props) => {
       </div>
 
       <div>
-        <input
-          {...register("year", { valueAsNumber: true })}
-          type="number"
-          placeholder="Año"
-          className="border-2"
-        />
+        <Input {...register("year", { valueAsNumber: true })} 
+        type="number" placeholder="Año" />
+        
         {errors.year && (
           <span className="text-red-500 text-xs">
             {errors.year.message}
@@ -93,9 +84,9 @@ export const CarForm = ({ onSubmit }: Props) => {
         )}
       </div>
 
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Creando..." : "Crear auto"}
-      </button>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? "Creando..." : "Crear Auto"}
+      </Button>
     </form>
   );
 };

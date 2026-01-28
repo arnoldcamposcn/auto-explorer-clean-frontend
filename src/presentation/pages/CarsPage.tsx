@@ -9,7 +9,7 @@ import { CarFilters } from "../../shared/constants/queryKeys";
 
 export const CarsPage = () => {
   const [filters, setFilters] = useState<CarFilters>({});
-  
+  const [deletedFilters, setDeletedFilters] = useState<CarFilters>({}); // ← NUEVO
   const { 
     cars, 
     carsDeleted, 
@@ -22,7 +22,7 @@ export const CarsPage = () => {
     deleteCar, 
     restoreCar,
     deletePermanently 
-  } = useCars(filters);
+  } = useCars(filters, deletedFilters);
 
   const handleCreate = async (carData: Omit<Car, "id">) => {
     try {
@@ -61,9 +61,12 @@ export const CarsPage = () => {
   };
 
 
-
   const handleFiltersChange = useCallback((newFilters: CarFilters) => {
     setFilters(newFilters); // Reemplazar completamente
+  }, []);
+
+  const handleFiltersChangeDeleted = useCallback((newFilters: CarFilters) => {
+    setDeletedFilters(newFilters);
   }, []);
 
 
@@ -79,17 +82,17 @@ export const CarsPage = () => {
 
   return (
     <>
-
       <CarList 
         cars={cars}
+        carsDeleted={carsDeleted} 
         colors={colors}
         brands={brands}
         years={years}
-        carsDeleted={carsDeleted} 
         onDelete={handleDelete}
         restoreCar={handleRestore}
         onDeletePermanently={handleDeletePermanently}
         onFiltersChange={handleFiltersChange}
+        onFiltersChangeDeleted={handleFiltersChangeDeleted}
       >
         <CarForm onSubmit={handleCreate} />
       </CarList>

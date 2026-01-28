@@ -1,4 +1,6 @@
 // infrastructure/api/axios.instance.ts
+
+// Patron Sinleton - 1 Sola instancia
 import axios from "axios";
 
 export const api = axios.create({

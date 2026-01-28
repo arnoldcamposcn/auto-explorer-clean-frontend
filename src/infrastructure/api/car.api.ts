@@ -15,8 +15,11 @@ export const carApi = {
     return data;
   },
 
-  getAllDeleted: async (): Promise<Car[]> => {
-    const { data } = await api.get<Car[]>(`${API_ENDPOINTS.CARS}/deleted`);
+  getAllDeleted: async (filters?: CarFilters): Promise<Car[]> => {
+    const { data } = await api.get<Car[]>(`${API_ENDPOINTS.CARS}/deleted`,
+      {
+        params: filters,
+      });
     return data;
   },
 

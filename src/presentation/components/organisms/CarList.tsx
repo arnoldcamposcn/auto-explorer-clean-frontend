@@ -4,6 +4,7 @@ import { Brands, Car, Colors, Years } from "../../../domain/entities/car";
 import { ReactNode, useState, useEffect, useMemo } from "react";
 import { CarFilters } from "../../../shared/constants/queryKeys";
 import { FilterSelect, createSelectOptions, createNumberSelectOptions } from "../molecules";
+import Modal from 'react-modal'
 
 interface Props {
   cars: Car[];
@@ -15,6 +16,7 @@ interface Props {
   onDeletePermanently: (id: number) => void;
   restoreCar: (id: number) => void;
   onFiltersChange?: (filters: CarFilters) => void;
+  onFiltersChangeDeleted?: (filters: CarFilters) => void;
   children?: ReactNode;
 }
 
@@ -28,14 +30,18 @@ export const CarList = ({
   restoreCar,
   onDeletePermanently,
   onFiltersChange,
+  onFiltersChangeDeleted,
   children,
 }: Props) => {
   const [showCarsDeleted, setShowCarsDeleted] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchTermDeleted, setSearchTermDeleted] = useState("");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const debouncedSearchDeleted = useDebounce(searchTermDeleted, 500);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Convertir colores a formato react-select
   // Memoizar las opciones para evitar recrearlas en cada render
@@ -78,30 +84,50 @@ export const CarList = ({
       onFiltersChange?.(filters);
     } else {
       // Cuando estamos viendo eliminados, limpiar filtros
-      onFiltersChange?.({});
+      onFiltersChangeDeleted?.({});
     }
-  }, [debouncedSearch, selectedColor, selectedBrand, selectedYear, showCarsDeleted, onFiltersChange]);
+  }, [debouncedSearch, selectedColor, selectedBrand, selectedYear, showCarsDeleted, onFiltersChange, onFiltersChangeDeleted]);
+
+
+  useEffect(() => {
+    if (showCarsDeleted) {
+      const filters: CarFilters = {};
+
+      if (debouncedSearchDeleted.trim()) {
+        filters.q = debouncedSearchDeleted.trim();
+      }
+
+      onFiltersChangeDeleted?.(filters);
+    } else {
+      // Cuando estamos viendo activos, limpiar filtros de eliminados
+      onFiltersChangeDeleted?.({});
+    }
+  }, [debouncedSearchDeleted, showCarsDeleted, onFiltersChangeDeleted]);
 
 
 
   const handleToggleCarsDeleted = () => {
     const newValue = !showCarsDeleted;
     setShowCarsDeleted(newValue);
-    
-    // Limpiar filtros cuando cambiamos a eliminados
+
+    // Limpiar filtros cuando cambiamos de vista
     if (newValue) {
       setSearchTerm("");
       setSelectedColor(null);
       setSelectedBrand(null);
+      setSelectedYear(null);
       onFiltersChange?.({});
+    } else {
+      setSearchTermDeleted("");
+      onFiltersChangeDeleted?.({});
     }
   };
-
 
   const carsToShow = showCarsDeleted ? carsDeleted : cars;
 
   return (
     <div className="p-6">
+
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 uppercase tracking-tight">
           Panel Administrativo de Autos
@@ -109,14 +135,50 @@ export const CarList = ({
         <p className="text-gray-500 text-sm">Control de inventario de flota</p>
       </div>
 
-      <div className="bg-white">
-        {children && !showCarsDeleted && (
-          <div className="mb-6">
-            {children}
-          </div>
-        )}
 
-        <div className="mb-6 flex justify-between items-center gap-4">
+      {!showCarsDeleted && (
+        <div className="mb-4 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+          >
+            Nuevo Auto
+          </button>
+        </div>
+      )}
+
+      <div className="bg-white">
+
+
+        <Modal
+          isOpen={isModalOpen}
+          onRequestClose={() => setIsModalOpen(false)}
+          contentLabel="Crear nuevo auto"
+          className="bg-white p-6 rounded shadow-lg w-full max-w-md outline-none"
+          overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+          >
+          <div className="flex justify-end items-center mb-4">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="flex justify-center w-full">
+          {children && (
+            <div>
+                <h2 className="text-lg font-bold">Crear nuevo auto</h2>
+                {children}
+              </div>
+            )}
+          </div>
+        </Modal>
+
+
+        <div className="mb-6 flex items-center gap-2">
           {/* Input y Select SOLO para autos disponibles */}
           {!showCarsDeleted && (
             <>
@@ -155,6 +217,17 @@ export const CarList = ({
                 />
               </div>
             </>
+          )}
+
+
+          {showCarsDeleted && (
+            <input
+              type="text"
+              placeholder="Buscar autos eliminados por marca, modelo o color..."
+              value={searchTermDeleted}
+              onChange={(e) => setSearchTermDeleted(e.target.value)}
+              className="flex-1 max-w-md p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
           )}
 
           <button
@@ -200,6 +273,7 @@ export const CarList = ({
                 </td>
               </tr>
             ) : (
+
               carsToShow.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 text-sm text-gray-700 border-r border-gray-100 font-medium text-center">

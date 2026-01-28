@@ -10,8 +10,8 @@ export class CarRepositoryImpl implements ICarRepository {
     return await carApi.getAll(filters);
   }
 
-  async getAllDeleted(): Promise<Car[]> {
-    return await carApi.getAllDeleted();
+  async getAllDeleted(filters?: CarFilters): Promise<Car[]> {
+    return await carApi.getAllDeleted(filters);
   }
 
   async getById(id: number): Promise<Car> {
