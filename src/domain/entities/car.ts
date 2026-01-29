@@ -15,7 +15,6 @@ export type Car = z.infer<typeof carSchema>;
 
 // Tipo del formulario (sin id)
 export const carFormSchema = carSchema.omit({ id: true });
-// Tipo del formulario (sin id)
 export type CarFormData = z.infer<typeof carFormSchema>;
 
 // Valor inicial (instancia concreta)
@@ -28,19 +27,13 @@ export const INITIAL_CAR_FORM_DATA: CarFormData = {
 };
 
 
-// Para el endpoint de colores
 export const colorsSchema = z.array(z.string().min(1, "El color no puede estar vacío"));
-
-export type Colors = z.infer<typeof colorsSchema>; // string[]
-
+export type Colors = z.infer<typeof colorsSchema>; 
 
 
-// Para el endpoint de marcas
 export const brandsSchema = z.array(z.string().min(1, "La marca es requerida"));
-
 export type Brands = z.infer<typeof brandsSchema>
 
 
 export const yearsSchema = z.array(z.number().min(1900, "El año debe ser mayor a 1900"));
-
 export type Years = z.infer<typeof yearsSchema>

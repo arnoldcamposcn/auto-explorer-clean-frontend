@@ -12,6 +12,7 @@ import { DeleteCarUseCase } from "../../domain/use-cases/deleteCar";
 import { carQueryKeys, CarFilters } from "../../shared/constants/queryKeys";
 import { GetBrandsUseCase } from "../../domain/use-cases/getBrands";
 import { GetYearsUseCase } from "../../domain/use-cases/getYears";
+import { UpdateCarUseCase } from "../../domain/use-cases/updateCar";
 // import { useMemo } from "react";
 
 // Instancias (puedes moverlas a un contexto/provider más adelante)
@@ -25,7 +26,7 @@ const createCarUseCase = new CreateCarUseCase(carRepository);
 const deleteCarUseCase = new DeleteCarUseCase(carRepository);
 const restoreCarUseCase = new RestoreCarUseCase(carRepository);
 const deletePermanentlyUseCase = new DeletePermanentlyUseCase(carRepository);
-
+const updateCarUseCase = new UpdateCarUseCase(carRepository);
 
 export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
   // export const useCars = (filters?: CarFilters) => {
@@ -120,6 +121,16 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     },
   });
 
+
+  const updateCarMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: Partial<Car> }) =>
+      updateCarUseCase.execute(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() });
+    },
+  });
+
+  
   return {
     cars,
     carsDeleted,
@@ -132,6 +143,7 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     deleteCar: deleteCarMutation.mutateAsync,
     restoreCar: restoreCarMutation.mutateAsync,
     deletePermanently: deletePermanentlyMutation.mutateAsync,
+    updateCar: updateCarMutation.mutateAsync,
     refetch: () => queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() }),
     refetchCarsDeleted: () => queryClient.invalidateQueries({ queryKey: carQueryKeys.deleted() }),
   };

@@ -5,6 +5,7 @@ import { ReactNode, useState, useEffect, useMemo } from "react";
 import { CarFilters } from "../../../shared/constants/queryKeys";
 import { FilterSelect, createSelectOptions, createNumberSelectOptions } from "../molecules";
 import Modal from 'react-modal'
+import { CarForm } from "./CarForm";
 
 interface Props {
   cars: Car[];
@@ -12,11 +13,13 @@ interface Props {
   colors: Colors; // Cambiar de Colors[] a Colors (que ya es string[])
   brands: Brands;
   years: Years;
+  // onUpdateCar: (id: number, payload: Partial<Car>) => void;
   onDelete: (id: number) => void;
   onDeletePermanently: (id: number) => void;
   restoreCar: (id: number) => void;
   onFiltersChange?: (filters: CarFilters) => void;
   onFiltersChangeDeleted?: (filters: CarFilters) => void;
+  onUpdateCar: (id: number, payload: Partial<Car>) => void;
   children?: ReactNode;
 }
 
@@ -25,6 +28,7 @@ export const CarList = ({
   carsDeleted,
   colors,
   years,
+  onUpdateCar,
   onDelete,
   brands,
   restoreCar,
@@ -32,6 +36,7 @@ export const CarList = ({
   onFiltersChange,
   onFiltersChangeDeleted,
   children,
+
 }: Props) => {
   const [showCarsDeleted, setShowCarsDeleted] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -43,6 +48,7 @@ export const CarList = ({
   const debouncedSearchDeleted = useDebounce(searchTermDeleted, 500);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [selectedCar, setSelectedCar] = useState<Car | null>(null);
   // Convertir colores a formato react-select
   // Memoizar las opciones para evitar recrearlas en cada render
   const colorOptions = useMemo(
@@ -105,12 +111,10 @@ export const CarList = ({
   }, [debouncedSearchDeleted, showCarsDeleted, onFiltersChangeDeleted]);
 
 
-
   const handleToggleCarsDeleted = () => {
     const newValue = !showCarsDeleted;
     setShowCarsDeleted(newValue);
 
-    // Limpiar filtros cuando cambiamos de vista
     if (newValue) {
       setSearchTerm("");
       setSelectedColor(null);
@@ -121,6 +125,21 @@ export const CarList = ({
       setSearchTermDeleted("");
       onFiltersChangeDeleted?.({});
     }
+  };
+
+  // const handleOpenCreateModal = () => {
+  //   setSelectedCar(null);
+  //   setIsModalOpen(true);
+  // };
+
+  const handleOpenEditModal = (car: Car) => {
+    setSelectedCar(car);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedCar(null);
   };
 
   const carsToShow = showCarsDeleted ? carsDeleted : cars;
@@ -151,30 +170,43 @@ export const CarList = ({
       <div className="bg-white">
 
 
-        <Modal
+      <Modal
           isOpen={isModalOpen}
-          onRequestClose={() => setIsModalOpen(false)}
-          contentLabel="Crear nuevo auto"
+          onRequestClose={handleCloseModal}
+          contentLabel={selectedCar ? "Editar auto" : "Crear nuevo auto"}
           className="bg-white p-6 rounded shadow-lg w-full max-w-md outline-none"
           overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
-          >
-          <div className="flex justify-end items-center mb-4">
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold">
+              {selectedCar ? "Editar auto" : "Crear nuevo auto"}
+            </h2>
             <button
               type="button"
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               className="text-gray-500 hover:text-gray-700"
             >
               ✕
             </button>
           </div>
-          <div className="flex justify-center w-full">
-          {children && (
-            <div>
-                <h2 className="text-lg font-bold">Crear nuevo auto</h2>
-                {children}
-              </div>
-            )}
-          </div>
+
+          {selectedCar ? (
+            <CarForm
+              mode="update"
+              initialValues={{
+                brand: selectedCar.brand,
+                model: selectedCar.model,
+                color: selectedCar.color,
+                year: selectedCar.year,
+              }}
+              onSubmit={async (data) => {
+                await onUpdateCar(selectedCar.id, data);
+                handleCloseModal();
+              }}
+            />
+          ) : (
+            children
+          )}
         </Modal>
 
 
@@ -289,7 +321,7 @@ export const CarList = ({
                     {item.year ?? "N/A"}
                   </td>
                   <td className="px-6 py-4 text-center">
-                    <div className="flex gap-6 justify-center">
+                  <div className="flex gap-6 justify-center">
                       {showCarsDeleted ? (
                         <>
                           <button
@@ -312,6 +344,7 @@ export const CarList = ({
                           <button
                             type="button"
                             className="text-blue-600 hover:text-blue-800 text-xs font-bold underline decoration-1 underline-offset-4"
+                            onClick={() => handleOpenEditModal(item)}
                           >
                             EDITAR
                           </button>

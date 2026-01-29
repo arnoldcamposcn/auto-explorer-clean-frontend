@@ -9,19 +9,19 @@ import { CarFilters } from "../../shared/constants/queryKeys";
 
 export const CarsPage = () => {
   const [filters, setFilters] = useState<CarFilters>({});
-  const [deletedFilters, setDeletedFilters] = useState<CarFilters>({}); // ← NUEVO
+  const [deletedFilters, setDeletedFilters] = useState<CarFilters>({});
   const { 
     cars, 
     carsDeleted, 
     colors,
     brands,
     years,
-    // loading, 
     error, 
     createCar, 
     deleteCar, 
     restoreCar,
-    deletePermanently 
+    deletePermanently,
+    updateCar
   } = useCars(filters, deletedFilters);
 
   const handleCreate = async (carData: Omit<Car, "id">) => {
@@ -60,25 +60,30 @@ export const CarsPage = () => {
     }
   };
 
+  const handleUpdate = async (id: number, payload: Partial<Car>) => {
+    try {
+      await updateCar({ id, payload });
+      toast.success("Auto actualizado correctamente");
+    } catch {
+      toast.error("Error al actualizar el auto");
+    }
+  };
 
   const handleFiltersChange = useCallback((newFilters: CarFilters) => {
-    setFilters(newFilters); // Reemplazar completamente
+    setFilters(newFilters);
   }, []);
 
   const handleFiltersChangeDeleted = useCallback((newFilters: CarFilters) => {
     setDeletedFilters(newFilters);
   }, []);
 
-
- // NO desmontar el componente, solo mostrar error si hay
- if (error) {
-  return (
-    <div className="p-6 text-red-500">
-      Error: {error}
-    </div>
-  );
-}
-
+  if (error) {
+    return (
+      <div className="p-6 text-red-500">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <>
@@ -93,9 +98,13 @@ export const CarsPage = () => {
         onDeletePermanently={handleDeletePermanently}
         onFiltersChange={handleFiltersChange}
         onFiltersChangeDeleted={handleFiltersChangeDeleted}
+        onUpdateCar={handleUpdate}
       >
-        <CarForm onSubmit={handleCreate} />
+        <CarForm 
+          mode="create"
+          onSubmit={handleCreate} 
+        />
       </CarList>
     </>
-    );
+  );
 };
