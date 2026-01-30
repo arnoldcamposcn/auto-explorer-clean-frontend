@@ -1,36 +1,15 @@
 // application/hooks/useCars.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Car } from "../../domain/entities/car";
-import { CarRepositoryImpl } from "../../infrastructure/repositories/CarRepositoryImpl";
-import { DeletePermanentlyUseCase } from "../../domain/use-cases/deletePerm";
-import { GetCarsUseCase } from "../../domain/use-cases/getCars";
-import { GetCarsDeletedUseCase } from "../../domain/use-cases/getCarsDelete";
-import { CreateCarUseCase } from "../../domain/use-cases/createCar";
-import { GetColorsUseCase } from "../../domain/use-cases/getColors";
-import { RestoreCarUseCase } from "../../domain/use-cases/restoreCar";
-import { DeleteCarUseCase } from "../../domain/use-cases/deleteCar";
 import { carQueryKeys, CarFilters } from "../../shared/constants/queryKeys";
-import { GetBrandsUseCase } from "../../domain/use-cases/getBrands";
-import { GetYearsUseCase } from "../../domain/use-cases/getYears";
-import { UpdateCarUseCase } from "../../domain/use-cases/updateCar";
-// import { useMemo } from "react";
-
-// Instancias (puedes moverlas a un contexto/provider más adelante)
-const carRepository = new CarRepositoryImpl();
-const getCarsUseCase = new GetCarsUseCase(carRepository);
-const getCarsDeletedUseCase = new GetCarsDeletedUseCase(carRepository);
-const getColorsUseCase = new GetColorsUseCase(carRepository);
-const getBrandsUseCase = new GetBrandsUseCase(carRepository);
-const getYearsUseCase = new GetYearsUseCase(carRepository);
-const createCarUseCase = new CreateCarUseCase(carRepository);
-const deleteCarUseCase = new DeleteCarUseCase(carRepository);
-const restoreCarUseCase = new RestoreCarUseCase(carRepository);
-const deletePermanentlyUseCase = new DeletePermanentlyUseCase(carRepository);
-const updateCarUseCase = new UpdateCarUseCase(carRepository);
+import { DIContainer } from "../di/container";
 
 export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
-  // export const useCars = (filters?: CarFilters) => {
   const queryClient = useQueryClient();
+  
+  // ✅ Obtener instancias del container (no hardcodeadas)
+  const queries = DIContainer.getQueries();
+  const mutations = DIContainer.getMutations();
 
   // Query para autos activos
   const {
@@ -39,9 +18,8 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     error: errorCars,
   } = useQuery({
     queryKey: carQueryKeys.list(filters),
-    queryFn: () => getCarsUseCase.execute(filters),
+    queryFn: () => queries.cars.execute(filters),
   });
-
 
   // Query para autos eliminados
   const {
@@ -49,8 +27,8 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     isLoading: loadingDeleted,
     error: errorDeleted,
   } = useQuery({
-    queryKey: carQueryKeys.deleted(deletedFilters), // Sin filtros
-    queryFn: () => getCarsDeletedUseCase.execute(deletedFilters), // Sin filtros
+    queryKey: carQueryKeys.deleted(deletedFilters),
+    queryFn: () => queries.carsDeleted.execute(deletedFilters),
   });
 
   const {
@@ -59,7 +37,7 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     error: errorColors,
   } = useQuery({
     queryKey: carQueryKeys.colors(),
-    queryFn: () => getColorsUseCase.execute(),
+    queryFn: () => queries.colors.execute(),
   });
 
   const {
@@ -68,7 +46,7 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     error: errorBrands,
   } = useQuery({
     queryKey: carQueryKeys.brands(),
-    queryFn: () => getBrandsUseCase.execute(),
+    queryFn: () => queries.brands.execute(),
   });
 
   const {
@@ -77,7 +55,7 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     error: errorYears,
   } = useQuery({
     queryKey: carQueryKeys.years(),
-    queryFn: () => getYearsUseCase.execute(),
+    queryFn: () => queries.years.execute(),
   });
 
   const loading = loadingCars || loadingDeleted || loadingColors || loadingBrands || loadingYears;
@@ -85,9 +63,8 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
 
   // Mutation para crear auto
   const createCarMutation = useMutation({
-    mutationFn: (car: Omit<Car, "id">) => createCarUseCase.execute(car),
+    mutationFn: (car: Omit<Car, "id">) => mutations.create.execute(car),
     onSuccess: () => {
-      // Invalidar queries para refrescar la lista
       queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: carQueryKeys.colors() });
       queryClient.invalidateQueries({ queryKey: carQueryKeys.brands() });
@@ -97,16 +74,7 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
 
   // Mutation para eliminar (soft delete)
   const deleteCarMutation = useMutation({
-    mutationFn: (id: number) => deleteCarUseCase.execute(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: carQueryKeys.deleted() });
-    },
-  });
-
-  // Mutation para restaurar
-  const restoreCarMutation = useMutation({
-    mutationFn: (id: number) => restoreCarUseCase.execute(id),
+    mutationFn: (id: number) => mutations.delete.execute(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: carQueryKeys.deleted() });
@@ -115,22 +83,30 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
 
   // Mutation para eliminar permanentemente
   const deletePermanentlyMutation = useMutation({
-    mutationFn: (id: number) => deletePermanentlyUseCase.execute(id),
+    mutationFn: (id: number) => mutations.deletePermanently.execute(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: carQueryKeys.deleted() });
     },
   });
 
+  // Mutation para restaurar
+  const restoreCarMutation = useMutation({
+    mutationFn: (id: number) => mutations.restore.execute(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: carQueryKeys.deleted() });
+    },
+  });
 
+  // Mutation para actualizar
   const updateCarMutation = useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: Partial<Car> }) =>
-      updateCarUseCase.execute(id, payload),
+      mutations.update.execute(id, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() });
     },
   });
 
-  
   return {
     cars,
     carsDeleted,
@@ -143,7 +119,8 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     deleteCar: deleteCarMutation.mutateAsync,
     restoreCar: restoreCarMutation.mutateAsync,
     deletePermanently: deletePermanentlyMutation.mutateAsync,
-    updateCar: updateCarMutation.mutateAsync,
+    updateCar: (id: number, payload: Partial<Car>) =>
+      updateCarMutation.mutateAsync({ id, payload }),
     refetch: () => queryClient.invalidateQueries({ queryKey: carQueryKeys.lists() }),
     refetchCarsDeleted: () => queryClient.invalidateQueries({ queryKey: carQueryKeys.deleted() }),
   };

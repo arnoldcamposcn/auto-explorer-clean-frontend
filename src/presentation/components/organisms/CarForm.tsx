@@ -1,7 +1,7 @@
 // presentation/components/CarForm.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "react-toastify";
+// import { toast } from "react-toastify";
 import { useEffect } from "react";
 import {
   CarFormData,
@@ -39,19 +39,14 @@ export const CarForm = ({ mode, initialValues, onSubmit }: Props) => {
   const onSubmitForm = async (data: CarFormData) => {
     try {
       await onSubmit(data);
-      toast.success(
-        mode === "create" 
-          ? "Auto creado correctamente" 
-          : "Auto actualizado correctamente"
-      );
-      reset();
+      if (mode === "create") {
+        reset();
+      }
     } catch (error) {
-      toast.error(
-        `Error al ${mode === "create" ? "crear" : "actualizar"} el auto. Por favor, intenta nuevamente.`
-      );
       if (import.meta.env.DEV) {
         console.error(error);
       }
+      throw error;
     }
   };
 

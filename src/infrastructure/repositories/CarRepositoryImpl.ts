@@ -10,8 +10,8 @@ export class CarRepositoryImpl implements ICarRepository {
     return await carApi.getAll(filters);
   }
 
-  async getAllDeleted(filters?: CarFilters): Promise<Car[]> {
-    return await carApi.getAllDeleted(filters);
+  async getDeleted(filters?: CarFilters): Promise<Car[]> {
+    return await carApi.getDeleted(filters);
   }
 
   async getById(id: number): Promise<Car> {
@@ -38,17 +38,15 @@ export class CarRepositoryImpl implements ICarRepository {
     return await carApi.update(id, payload);
   }
 
-  async restore(id:number): Promise<Car>{
+  async restore(id: number): Promise<Car>{
     return await carApi.restore(id);
   }
 
-  async remove(id: number): Promise<void> {
-    return await carApi.remove(id);
+  async delete(id: number): Promise<void> {
+    return await carApi.delete(id);
   }
 
-  async removePermanently(id:number): Promise<void>{
-    return await carApi.removePermanently(id);
+  async deletePermanently(id:number): Promise<void>{
+    return await carApi.deletePermanently(id);
   }
 }
-
-

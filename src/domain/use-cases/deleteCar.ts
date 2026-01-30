@@ -1,4 +1,3 @@
-// domain/use-cases/deleteCar.ts
 import { ICarRepository } from "../repositories/CarRepository";
 
 export class DeleteCarUseCase {
@@ -8,6 +7,6 @@ export class DeleteCarUseCase {
     if (!id || id <= 0) {
       throw new Error("ID inválido");
     }
-    return await this.carRepository.remove(id);
+    return await this.carRepository.delete(id);
   }
 }

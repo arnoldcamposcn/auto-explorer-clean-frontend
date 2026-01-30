@@ -60,12 +60,14 @@ export const CarsPage = () => {
     }
   };
 
-  const handleUpdate = async (id: number, payload: Partial<Car>) => {
+  const handleUpdate = async (id: number, payload: Partial<Car>): Promise<void> => {
     try {
-      await updateCar({ id, payload });
+      await updateCar(id, payload);
       toast.success("Auto actualizado correctamente");
-    } catch {
-      toast.error("Error al actualizar el auto");
+    } catch (error: any) {
+      const errorMessage = error?.response?.data?.message || error?.message || "Error al actualizar el auto";
+      toast.error(errorMessage);
+      throw error; // ✅ Re-lanzar para que el modal sepa si hubo error
     }
   };
 

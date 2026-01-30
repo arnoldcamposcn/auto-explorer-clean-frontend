@@ -6,7 +6,7 @@ export class GetCarsDeletedUseCase {
   constructor(private carRepository: ICarRepository) {}
 
   async execute(filters?: CarFilters): Promise<Car[]> {
-    // Sin filtros - siempre trae todos los eliminados
-    return await this.carRepository.getAllDeleted(filters);
+
+    return await this.carRepository.getDeleted(filters);
   }
 }
