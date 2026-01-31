@@ -1,20 +1,20 @@
 // infrastructure/api/car.api.ts
-import { Brands, Car, Colors, Years } from "../../domain/entities/car";
+import { Brands, Car, Colors, Years, PaginationResponse } from "../../domain/entities/car";
 import { api } from "./axios.instance";
 import { API_ENDPOINTS } from "../../shared/constants/api.endpoints";
 import { CarFilters } from "../../shared/constants/queryKeys";
 
   export const carApi = {
     
-    getAll: async (filters?: CarFilters): Promise<Car[]> => {
-      const { data } = await api.get<Car[]>(API_ENDPOINTS.CARS, {
+    getAll: async (filters?: CarFilters): Promise<PaginationResponse<Car>> => {
+      const { data } = await api.get<PaginationResponse<Car>>(API_ENDPOINTS.CARS, {
         params: filters,
       });
       return data;
     },
-  
-    getDeleted: async (filters?: CarFilters): Promise<Car[]> => {
-      const { data } = await api.get<Car[]>(API_ENDPOINTS.CARS_DELETED, {
+    
+    getDeleted: async (filters?: CarFilters): Promise<PaginationResponse<Car>> => {
+      const { data } = await api.get<PaginationResponse<Car>>(API_ENDPOINTS.CARS_DELETED, {
         params: filters,
       });
       return data;

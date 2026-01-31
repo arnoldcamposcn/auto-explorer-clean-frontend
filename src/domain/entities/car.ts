@@ -37,3 +37,19 @@ export type Brands = z.infer<typeof brandsSchema>
 
 export const yearsSchema = z.array(z.number().min(1900, "El año debe ser mayor a 1900"));
 export type Years = z.infer<typeof yearsSchema>
+
+
+
+export interface PaginationMeta {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  }
+  
+  export interface PaginationResponse<T> {
+    data: T[];
+    meta: PaginationMeta;
+  }

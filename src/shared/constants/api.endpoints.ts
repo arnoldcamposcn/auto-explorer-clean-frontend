@@ -2,16 +2,16 @@
 
 export const API_ENDPOINTS = {
   // Base endpoint
-  CARS: "/cards",
+  CARS: "/cars",
   
   // Sub-rutas estáticas
-  CARS_DELETED: "/cards/deleted",
-  CARS_COLORS: "/cards/colors",
-  CARS_BRANDS: "/cards/brands",
-  CARS_YEARS: "/cards/years",
+  CARS_DELETED: "/cars/deleted",
+  CARS_COLORS: "/cars/colors",
+  CARS_BRANDS: "/cars/brands",
+  CARS_YEARS: "/cars/years",
   
   // Funciones para rutas dinámicas (con ID)
-  CAR_BY_ID: (id: number) => `/cards/${id}`,
-  CAR_RESTORE: (id: number) => `/cards/${id}/restore`,
-  CAR_HARD_DELETE: (id: number) => `/cards/${id}/hard`,
+  CAR_BY_ID: (id: number) => `/cars/${id}`,
+  CAR_RESTORE: (id: number) => `/cars/${id}/restore`,
+  CAR_HARD_DELETE: (id: number) => `/cars/${id}/hard`,
 } as const;

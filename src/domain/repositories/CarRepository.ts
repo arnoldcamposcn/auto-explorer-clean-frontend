@@ -1,10 +1,10 @@
 
-import { Brands, Car, Colors, Years } from "../entities/car";
+import { Brands, Car, Colors, PaginationResponse, Years } from "../entities/car";
 import { CarFilters } from "../../shared/constants/queryKeys";
 
 export interface ICarRepository {
-  getAll(filters?: CarFilters): Promise<Car[]>;
-  getDeleted(filters?: CarFilters): Promise<Car[]>;
+  getAll(filters?: CarFilters): Promise<PaginationResponse<Car>>;
+  getDeleted(filters?: CarFilters): Promise<PaginationResponse<Car>>;
   getById(id: number): Promise<Car>;
   getColors(): Promise<Colors>;
   getBrands(): Promise<Brands>;

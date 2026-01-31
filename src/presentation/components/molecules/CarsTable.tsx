@@ -1,5 +1,6 @@
 // presentation/components/molecules/CarsTable.tsx
 import { Car } from "../../../domain/entities/car";
+import { Pagination } from "./Pagination";
 
 interface CarsTableProps {
   cars: Car[];
@@ -9,6 +10,11 @@ interface CarsTableProps {
   onRestore: (id: number) => void;
   onDeletePermanently: (id: number) => void;
   hasActiveFilters: boolean;
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
 }
 
 export const CarsTable = ({
@@ -19,8 +25,14 @@ export const CarsTable = ({
   onRestore,
   onDeletePermanently,
   hasActiveFilters,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
+  hasNextPage = false,
+  hasPreviousPage = false,
 }: CarsTableProps) => {
   return (
+    <>
     <table className="w-full border-collapse border border-gray-200 rounded-md shadow-sm overflow-hidden">
       <thead className="bg-blue-700 text-white">
         <tr>
@@ -110,5 +122,19 @@ export const CarsTable = ({
         )}
       </tbody>
     </table>
+
+
+    {onPageChange && totalPages > 1 && (
+        <div className="mt-6">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+            hasNextPage={hasNextPage}
+            hasPreviousPage={hasPreviousPage}
+          />
+        </div>
+      )}
+    </>
   );
 };

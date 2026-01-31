@@ -1,5 +1,5 @@
 // application/hooks/useCarFilters.ts
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useDebounce } from "./useDebounce";
 import { CarFilters } from "../../shared/constants/queryKeys";
 import { Colors, Brands, Years } from "../../domain/entities/car";
@@ -10,6 +10,8 @@ interface UseCarFiltersProps {
   brands: Brands;
   years: Years;
   onFiltersChange?: (filters: CarFilters) => void;
+  currentPage: number;
+  onPageChange?: (page: number) => void;
 }
 
 export const useCarFilters = ({
@@ -17,6 +19,8 @@ export const useCarFilters = ({
   brands,
   years,
   onFiltersChange,
+  currentPage = 1,
+  onPageChange,
 }: UseCarFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -24,6 +28,24 @@ export const useCarFilters = ({
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const prevFiltersRef = useRef({ debouncedSearch, selectedColor, selectedBrand, selectedYear });
+
+ 
+  useEffect(() => {
+    const prevFilters = prevFiltersRef.current;
+    const filtersChanged = 
+      prevFilters.debouncedSearch !== debouncedSearch ||
+      prevFilters.selectedColor !== selectedColor ||
+      prevFilters.selectedBrand !== selectedBrand ||
+      prevFilters.selectedYear !== selectedYear;
+    
+    if (filtersChanged && currentPage !== 1) {
+      onPageChange?.(1);
+    }
+
+    prevFiltersRef.current = { debouncedSearch, selectedColor, selectedBrand, selectedYear };
+  }, [debouncedSearch, selectedColor, selectedBrand, selectedYear, currentPage, onPageChange]);
+
 
   const colorOptions = useMemo(
     () => createSelectOptions(colors, "Todos los colores"),
@@ -39,6 +61,7 @@ export const useCarFilters = ({
     () => createNumberSelectOptions(years, "Todos los años"),
     [years]
   );
+
 
   useEffect(() => {
     const filters: CarFilters = {};
@@ -59,8 +82,11 @@ export const useCarFilters = ({
       filters.year = selectedYear;
     }
 
+    filters.page = currentPage;
+    filters.limit = 10;
+
     onFiltersChange?.(filters);
-  }, [debouncedSearch, selectedColor, selectedBrand, selectedYear, onFiltersChange]);
+  }, [debouncedSearch, selectedColor, selectedBrand, selectedYear, currentPage, onFiltersChange]); // ✅ Agregar currentPage
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -70,7 +96,6 @@ export const useCarFilters = ({
   };
 
   return {
-    // Estados individuales (para uso directo si es necesario)
     searchTerm,
     setSearchTerm,
     selectedColor,
@@ -79,13 +104,10 @@ export const useCarFilters = ({
     setSelectedBrand,
     selectedYear,
     setSelectedYear,
-    // Opciones
     colorOptions,
     brandOptions,
     yearOptions,
-    // Utilidades
     clearFilters,
-    // ✅ Objetos agrupados para CarFiltersBar
     colorFilter: {
       value: selectedColor,
       onChange: setSelectedColor,

@@ -8,11 +8,23 @@ import { useState, useCallback } from "react";
 import { CarFilters } from "../../shared/constants/queryKeys";
 
 export const CarsPage = () => {
-  const [filters, setFilters] = useState<CarFilters>({});
-  const [deletedFilters, setDeletedFilters] = useState<CarFilters>({});
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPageDeleted, setCurrentPageDeleted] = useState(1);
+  const [filters, setFilters] = useState<CarFilters>({
+    page: 1,
+    limit: 10,
+  });
+  const [deletedFilters, setDeletedFilters] = useState<CarFilters>({
+    page: 1,
+    limit: 10,
+  });
+
   const { 
     cars, 
-    carsDeleted, 
+    carsMeta, 
+    carsDeleted,
+    carsDeletedMeta,
     colors,
     brands,
     years,
@@ -67,16 +79,34 @@ export const CarsPage = () => {
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || error?.message || "Error al actualizar el auto";
       toast.error(errorMessage);
-      throw error; // ✅ Re-lanzar para que el modal sepa si hubo error
+      throw error;
     }
   };
 
   const handleFiltersChange = useCallback((newFilters: CarFilters) => {
-    setFilters(newFilters);
+    setFilters(prev => ({
+      ...newFilters,
+      page: prev.page || 1,
+      limit: prev.limit || 10,
+    }));
   }, []);
 
   const handleFiltersChangeDeleted = useCallback((newFilters: CarFilters) => {
-    setDeletedFilters(newFilters);
+    setDeletedFilters(prev => ({
+      ...newFilters,
+      page: prev.page || 1,
+      limit: prev.limit || 10,
+    }));
+  }, []);
+
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    setFilters(prev => ({ ...prev, page }));
+  }, []);
+
+  const handlePageChangeDeleted = useCallback((page: number) => {
+    setCurrentPageDeleted(page);
+    setDeletedFilters(prev => ({ ...prev, page }));
   }, []);
 
   if (error) {
@@ -91,7 +121,9 @@ export const CarsPage = () => {
     <>
       <CarList 
         cars={cars}
-        carsDeleted={carsDeleted} 
+        carsDeleted={carsDeleted}
+        carsMeta={carsMeta} 
+        carsDeletedMeta={carsDeletedMeta} 
         colors={colors}
         brands={brands}
         years={years}
@@ -101,6 +133,10 @@ export const CarsPage = () => {
         onFiltersChange={handleFiltersChange}
         onFiltersChangeDeleted={handleFiltersChangeDeleted}
         onUpdateCar={handleUpdate}
+        currentPage={currentPage} 
+        onPageChange={handlePageChange} 
+        currentPageDeleted={currentPageDeleted} 
+        onPageChangeDeleted={handlePageChangeDeleted} 
       >
         <CarForm 
           mode="create"

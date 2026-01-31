@@ -1,19 +1,17 @@
 // application/hooks/useCars.ts
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Car } from "../../domain/entities/car";
+import { Car, PaginationMeta } from "../../domain/entities/car";
 import { carQueryKeys, CarFilters } from "../../shared/constants/queryKeys";
 import { DIContainer } from "../di/container";
 
 export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
   const queryClient = useQueryClient();
   
-  // ✅ Obtener instancias del container (no hardcodeadas)
   const queries = DIContainer.getQueries();
   const mutations = DIContainer.getMutations();
 
-  // Query para autos activos
   const {
-    data: cars = [],
+    data: carsResponse, 
     isLoading: loadingCars,
     error: errorCars,
   } = useQuery({
@@ -21,15 +19,21 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
     queryFn: () => queries.cars.execute(filters),
   });
 
-  // Query para autos eliminados
+  const cars = carsResponse?.data || [];
+  const carsMeta: PaginationMeta | undefined = carsResponse?.meta;
+
   const {
-    data: carsDeleted = [],
+    data: deletedResponse,
     isLoading: loadingDeleted,
     error: errorDeleted,
   } = useQuery({
     queryKey: carQueryKeys.deleted(deletedFilters),
     queryFn: () => queries.carsDeleted.execute(deletedFilters),
   });
+
+  const carsDeleted = deletedResponse?.data || [];
+  const carsDeletedMeta: PaginationMeta | undefined = deletedResponse?.meta;
+
 
   const {
     data: colors = [],
@@ -61,7 +65,7 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
   const loading = loadingCars || loadingDeleted || loadingColors || loadingBrands || loadingYears;
   const error = errorCars || errorDeleted || errorColors || errorBrands || errorYears;
 
-  // Mutation para crear auto
+  
   const createCarMutation = useMutation({
     mutationFn: (car: Omit<Car, "id">) => mutations.create.execute(car),
     onSuccess: () => {
@@ -110,6 +114,8 @@ export const useCars = (filters?: CarFilters, deletedFilters?: CarFilters) => {
   return {
     cars,
     carsDeleted,
+    carsMeta,
+    carsDeletedMeta,
     colors,
     brands,
     years,

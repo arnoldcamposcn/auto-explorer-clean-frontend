@@ -1,6 +1,6 @@
 // presentation/components/organisms/CarList.tsx
 import { ReactNode, useState } from "react";
-import { Brands, Car, Colors, Years } from "../../../domain/entities/car";
+import { Brands, Car, Colors, PaginationMeta, Years } from "../../../domain/entities/car";
 import { CarFilters } from "../../../shared/constants/queryKeys";
 import { useCarFilters } from "../../../application/hooks/useCarFilters";
 import { useDeletedCarFilters } from "../../../application/hooks/useDeletedCarFilters";
@@ -13,6 +13,8 @@ import { Button } from "../atoms/Button";
 interface Props {
   cars: Car[];
   carsDeleted: Car[];
+  carsMeta?: PaginationMeta;
+  carsDeletedMeta?: PaginationMeta;
   colors: Colors;
   brands: Brands;
   years: Years;
@@ -22,12 +24,18 @@ interface Props {
   onFiltersChange?: (filters: CarFilters) => void;
   onFiltersChangeDeleted?: (filters: CarFilters) => void;
   onUpdateCar: (id: number, payload: Partial<Car>) => Promise<void>;
+  currentPage: number;
+  onPageChange?: (page: number) => void;
+  currentPageDeleted: number;
+  onPageChangeDeleted?: (page: number) => void;
   children?: ReactNode;
 }
 
 export const CarList = ({
   cars,
   carsDeleted,
+  carsMeta,
+  carsDeletedMeta,
   colors,
   brands,
   years,
@@ -37,25 +45,31 @@ export const CarList = ({
   onFiltersChange,
   onFiltersChangeDeleted,
   onUpdateCar,
+  currentPage = 1,
+  onPageChange,
+  currentPageDeleted = 1,
+  onPageChangeDeleted,
   children,
 }: Props) => {
   const [showCarsDeleted, setShowCarsDeleted] = useState(false);
   
-  // ✅ Hooks extraídos
   const filters = useCarFilters({
     colors,
     brands,
     years,
     onFiltersChange: showCarsDeleted ? undefined : onFiltersChange,
+    currentPage: showCarsDeleted ? currentPageDeleted : currentPage, 
+    onPageChange: showCarsDeleted ? onPageChangeDeleted : onPageChange,
   });
 
   const deletedFilters = useDeletedCarFilters({
     onFiltersChange: showCarsDeleted ? onFiltersChangeDeleted : undefined,
+    currentPage: currentPageDeleted,
+    onPageChange: onPageChangeDeleted,
   });
 
   const modal = useCarModal();
 
-  // Lógica de toggle
   const handleToggleCarsDeleted = () => {
     const newValue = !showCarsDeleted;
     setShowCarsDeleted(newValue);
@@ -70,6 +84,7 @@ export const CarList = ({
   };
 
   const carsToShow = showCarsDeleted ? carsDeleted : cars;
+  const metaToShow = showCarsDeleted ? carsDeletedMeta : carsMeta;
   const hasActiveFilters = Boolean(
     filters.searchTerm || filters.selectedColor || filters.selectedBrand || filters.selectedYear
   );
@@ -148,6 +163,11 @@ export const CarList = ({
           onRestore={restoreCar}
           onDeletePermanently={onDeletePermanently}
           hasActiveFilters={hasActiveFilters}
+          currentPage={showCarsDeleted ? currentPageDeleted : currentPage}
+          totalPages={metaToShow?.totalPages || 1}
+          onPageChange={showCarsDeleted ? onPageChangeDeleted : onPageChange}
+          hasNextPage={metaToShow?.hasNextPage ?? false}
+          hasPreviousPage={metaToShow?.hasPreviousPage || false}
         />
       </div>
     </div>

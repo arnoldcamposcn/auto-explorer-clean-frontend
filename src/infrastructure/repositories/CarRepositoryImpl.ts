@@ -1,16 +1,16 @@
 // infrastructure/repositories/CarRepositoryImpl.ts
 import { ICarRepository } from "../../domain/repositories/CarRepository";
-import { Brands, Car, Colors, Years } from "../../domain/entities/car";
+import { Brands, Car, Colors, PaginationResponse, Years } from "../../domain/entities/car";
 import { carApi } from "../api/car.api";
 import { CarFilters } from "../../shared/constants/queryKeys";
 
 export class CarRepositoryImpl implements ICarRepository {
 
-  async getAll(filters?: CarFilters): Promise<Car[]> {
-    return await carApi.getAll(filters);
+  async getAll(filters?: CarFilters): Promise<PaginationResponse<Car>> {
+    return await carApi.getAll(filters);  
   }
 
-  async getDeleted(filters?: CarFilters): Promise<Car[]> {
+  async getDeleted(filters?: CarFilters): Promise<PaginationResponse<Car>> {
     return await carApi.getDeleted(filters);
   }
 
